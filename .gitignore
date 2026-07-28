@@ -1,0 +1,30 @@
+# ---- secrets (NEVER commit) ----
+.env
+.env.*
+!.env.example
+
+# ---- python ----
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+
+# ---- runtime state (real trades, control, heartbeat) ----
+state/
+*.db
+*.db-shm
+*.db-wal
+*.log
+
+# ---- market data & generated reports (licensed / personal) ----
+data/
+results/
+*.xlsx
+
+# ---- editor / OS ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

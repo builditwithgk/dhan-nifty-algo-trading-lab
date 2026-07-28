@@ -1,0 +1,83 @@
+# ============================================================
+# Algo Trading Lab — configuration (all knobs live here, one place)
+# Change values here; never hardcode them in code.
+# ============================================================
+
+# ============================================================
+# v1 is PAPER ONLY. This release ships no live-order broker, so real orders
+# are impossible — not merely switched off. Leave this as 'paper'; setting it
+# to 'live' makes the engine refuse to start (see gk/runtime.py).
+# ============================================================
+mode: paper                 # paper only in v1
+
+# ---- Money & risk (the "balanced" settings) ----
+# capital = the ONLY money this app may use. Even if your Dhan account holds
+# 8-10L, the app treats THIS number as its whole world and never deploys more
+# than this in total open positions. Set it to what you want to risk testing.
+capital: 100000          # money the app may use (change per day from the dashboard)
+risk_per_trade_pct: 0.5  # % of capital risked per trade (distance to stop)
+max_daily_loss_pct: 2.0  # halt for the day if loss exceeds this % of capital
+daily_profit_target: 0   # halt for the day once up this many RUPEES (0 = off)
+max_notional_per_trade_pct: 25.0  # a single trade may not exceed this % of capital in value
+
+# Position caps, split by asset class so equity and options are tested together.
+max_equity_positions: 5   # up to 5 stock positions open at once
+max_option_positions: 5   # up to 5 NIFTY option positions open at once
+max_open_positions: 10    # overall safety ceiling (equity + options)
+
+# Per-day NEW-trade caps (the "1 / 3 / 5 a day" limit). Editable from the dashboard.
+max_equity_trades_per_day: 5
+max_option_trades_per_day: 5
+
+# Catch-up: on a late start / restart, JOIN a signal that already fired today IF
+# it is still valid (neither stop nor target hit yet, and enough reward left).
+# Makes the engine robust to power/internet interruptions on a local machine.
+catch_up: true
+catchup_min_rr: 0.5   # skip a late (catch-up) entry if remaining reward:risk < this
+
+# ---- Session (IST) ----
+market_open:  "09:15"
+market_close: "15:30"
+entry_cutoff: "15:00"    # no NEW entries after this
+square_off:   "15:15"    # everything flattened at/after this
+
+# ---- Costs (per side unless noted) ----
+costs:
+  equity_slippage_pct: 0.03    # % of price, market orders
+  option_slippage_pct: 0.50    # % of premium
+
+# ---- Equity intraday universe (liquid F&O large-caps) ----
+equity_universe:
+  - RELIANCE
+  - HDFCBANK
+  - ICICIBANK
+  - SBIN
+  - AXISBANK
+  - INFY
+  - TCS
+  - BHARTIARTL
+  - LT
+  - BAJFINANCE
+  - TATASTEEL
+  - MARUTI
+
+# ---- Options (NIFTY only for now) — directional ATM buying, paper test ----
+options:
+  underlying: NIFTY        # see instruments.py for lot size / expiry weekday
+  enabled: true            # trade NIFTY options alongside equity in the paper engine
+  lots: 1                  # NIFTY lots per option trade (65 qty each)
+  sl_pct: 35               # BUY leg: exit if the option premium falls this %
+  tp_pct: 60               # BUY leg: exit if the option premium rises this %
+  cooldown_min: 15         # minimum minutes between option entries (spaces them out)
+  # ---- what to trade ----
+  buy_enabled: true        # buy ATM CE/PE (directional; capped loss = premium)
+  sell_enabled: true       # SELL defined-risk credit spreads (bull-put / bear-call)
+  # ---- credit spread (SELL) settings ----
+  sell_min_iv: 11          # only SELL when ATM implied vol >= this % (the IV-rich filter)
+  spread_short_otm: 2      # short leg this many strikes out-of-the-money
+  spread_width: 3          # strikes between the short leg and the protective long leg
+  spread_sl_mult: 2.0      # close the spread if its buyback cost hits this x the credit
+  spread_tp_frac: 0.5      # close the spread once you can buy it back for this x the credit
+
+# ---- Journal / state ----
+state_dir: state           # SQLite db + kill-switch flag live here

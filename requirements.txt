@@ -1,0 +1,8 @@
+dhanhq==2.2.0
+pandas>=2.0
+numpy>=1.26
+pyyaml>=6.0
+python-dotenv>=1.0
+pytz>=2024.1
+streamlit>=1.30
+openpyxl>=3.1        # optional: Excel export in run_report.py
