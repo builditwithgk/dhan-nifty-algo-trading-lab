@@ -7,12 +7,15 @@
 Back-test, validate, and **paper-trade** equity-intraday and NIFTY-options strategies —
 with a full Indian cost model, out-of-sample validation, and a live control dashboard.
 
-> **This project's headline result is a negative one.** After realistic costs, none of
-> the intraday strategies tested here showed a durable edge — and the platform says so
-> out loud, with the data. Most retail "algo trading" repos ship a curve-fit backtest
-> and overclaim. This one is engineered like a real trading system and used that rigor
-> to *falsify its own strategies* instead of flattering them. The reusable machine is
-> the deliverable; the honest findings are the proof it works.
+> **Find out whether a strategy actually works — before you risk a rupee.**
+> A backtest that ignores brokerage, STT and slippage will tell you almost anything you
+> want to hear. This platform is built to give you the real answer: every trade is
+> booked at a realistic fill price net of the full Indian charge stack, and every
+> promising result is re-tested on data it has never seen.
+>
+> It is deliberately strategy-agnostic. Bring your own idea, run it through the same
+> pipeline, and get a verdict you can trust — the included strategies come with their
+> complete, unedited test results as a worked example of the method.
 
 **🟢 v1 is paper trading only.** It ships no live-order broker, so real orders are
 impossible in this release — not merely switched off. Live trading is planned for v2
@@ -46,9 +49,9 @@ pause / kill / flatten controls.
 - **Streamlit dashboard** — pause / kill / flatten controls, per-class P&L, net-of-cost projections, permanent history.
 - **SQLite journal** — every fill, every charge, each day's P&L; trade history survives a daily reset.
 
-## The engineering that makes it trustworthy
+## The engineering that makes the results trustworthy
 
-*(the part most repos get wrong)*
+*Results are only as good as the machine that produced them. This is what backs them:*
 
 - **Real fills, real costs.** A fill is the *actual* executed price with slippage, never the intended price, and every trade is booked net of the full Indian charge stack — brokerage, STT, exchange, SEBI, stamp duty, GST.
 - **Risk sizing from the stop.** `qty = fixed-rupee risk ÷ stop distance`, rounded down to whole lots and capped by a max-notional rule. If one lot is too big, the trade is *skipped* — never forced to a single unit.
@@ -57,25 +60,35 @@ pause / kill / flatten controls.
 - **A kill switch that flattens and survives a restart.** It comes back *frozen* — it never wakes up trading by accident.
 - **No-lookahead backtester + out-of-sample validator.** Strategy selection is validated on unseen data; in-sample winners are treated as luck until they persist.
 
-## Honest research findings
+## The method, demonstrated
 
-Every intraday / short-term strategy tested on **real market data**, net of costs, with out-of-sample validation:
+Rather than ship a polished backtest, this repo publishes its **complete test results**
+so you can judge the pipeline for yourself. Each classic intraday strategy was run on
+real market data, net of costs, and validated out-of-sample:
 
-| Strategy | Test | Result |
+| Strategy | Test | Result vs the gate |
 |---|---|---|
-| Equity — ORB breakout | 210 F&O stocks, out-of-sample split | ❌ no persistence (Spearman +0.05; field PF 0.07) |
-| Equity — momentum | full universe | ❌ PF 0.65 |
-| Equity — VWAP mean-reversion | 210 stocks, OOS | ❌ field PF ~0.00 |
-| NIFTY — bull-put spread (sell) | 6 months real option data | ❌ PF 0.60 |
-| NIFTY — directional option buying | 85 days real option data | ❌ best PF 0.51 |
+| Equity — ORB breakout | 210 F&O stocks, out-of-sample split | did not clear (Spearman +0.05; field PF 0.07) |
+| Equity — momentum | full universe | did not clear (PF 0.65) |
+| Equity — VWAP mean-reversion | 210 stocks, OOS | did not clear (field PF ~0.00) |
+| NIFTY — bull-put spread (sell) | 6 months real option data | did not clear (PF 0.60) |
+| NIFTY — directional option buying | 85 days real option data | did not clear (best PF 0.51) |
 
-Pass gate = profit factor **> 1.2 after costs**, enough trades, and out-of-sample
-persistence. A full-sample scan produced 21 "winning" ORB names (top PF 2.75) that
-**collapsed to luck** out-of-sample — the single most important lesson here.
+The gate is deliberately strict: profit factor **> 1.2 after costs**, a meaningful
+number of trades, and persistence on unseen data. None of these textbook intraday
+setups cleared it — a result worth knowing *before* funding them, and consistent with
+the structural cost hurdle in Indian intraday trading.
 
-The one place an edge ever appeared was **lower-frequency** strategies (monthly
-cross-sectional momentum, index SIP): costs stop dominating once holds are days to
-months. Full write-up: **[FINDINGS.md](FINDINGS.md)**.
+**The most useful lesson is in the near-miss.** A full-sample scan surfaced 21
+"winning" ORB names, the best at PF 2.75. Out-of-sample, they collapsed to luck. Any
+pipeline without that second step would have shipped them as a strategy — which is
+exactly the failure mode this project is built to catch.
+
+Where results did look more promising: **lower-frequency** approaches (monthly
+cross-sectional momentum, index SIP), where costs stop dominating once holding periods
+stretch to days or months. That is the direction the [roadmap](ROADMAP.md) points.
+
+Full write-up with methodology: **[FINDINGS.md](FINDINGS.md)**.
 
 ## Verify the safety machine
 
@@ -147,13 +160,33 @@ Python 3.13 · dhanhq 2.2.0 · pandas / numpy · Streamlit · SQLite (WAL) · Py
 - `state/` databases — trade history stays local
 - `data/` historical CSVs — licensed market data; fetch it yourself
 
-## Disclaimer
+## Before you use this — please read
 
-Educational and research use only. **Not financial advice.** Trading equities and
-options involves substantial risk of loss and there is **no guarantee of profit**. The
-strategies included here were tested and found *unprofitable* after costs — they are
-published as honest research, not as recommendations. Use at your own risk, and never
-trade money you cannot afford to lose.
+This project is shared for **education and research**. It is a testing platform, not a
+money-making product, and nothing in it is financial advice.
+
+**What you can rely on**
+- The engine, cost model, backtester and validator are the deliverable, and they are
+  built to be correct. Run `python tests/test_spine.py` to check the safety machine yourself.
+- v1 is **paper trading only** — it ships no live-order broker, so it cannot place a
+  real order. Nothing you do here can move real money.
+- Every number in the results above is reproducible with the included research scripts.
+
+**What you should not assume**
+- The bundled strategies are **examples of the method, not recommendations**. They were
+  tested and did not clear the profitability gate after costs. Please do not fund them
+  because they appear in a repository.
+- A passing backtest is evidence, not a guarantee. Markets change, and past results
+  never promise future returns.
+- Cost, lot-size and expiry rules are current as of 2026 and change over time — verify
+  them against your broker before drawing conclusions.
+- If you extend this toward live trading, that is your own risk to own. Test on paper
+  first, start at the smallest possible size, and never trade money you cannot afford
+  to lose.
+
+**Not investment advice.** The authors are not licensed financial advisers and accept
+no liability for any loss arising from use of this software. Trading equities and
+options carries substantial risk, including loss of your entire capital.
 
 ## License
 

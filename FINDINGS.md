@@ -5,9 +5,11 @@ out-of-sample (train/test) validation where selection was involved. Dates: built
 and tested July 2026.
 
 ## Bottom line
-Every **intraday / short-term** strategy tested has **no edge after costs**. This
-matches the owner's own earlier research and the structural cost/theta hurdle
-(intraday round-trip ~0.09%+ means you must net >~0.25%/trade just to break even).
+None of the **intraday / short-term** strategies tested cleared the profitability gate
+after costs. That is consistent with the structural cost hurdle in Indian intraday
+trading: a round-trip runs ~0.09%+, so a strategy must net roughly 0.25% per trade
+before it breaks even. Longer holding periods, where that hurdle is amortised over a
+bigger move, remain the more promising direction.
 
 ## What was tested
 
